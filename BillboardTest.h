@@ -12,6 +12,7 @@
 #include <QOpenGLShaderProgram>
 
 #include "vertextex.h"
+#include "Camera.h"
 
 #define ToRadian(x) ((x) * M_PI / 180.0f)
 #define ToDegree(x) ((x) * 180.0f / M_PI)
@@ -55,10 +56,11 @@ private:
     GLuint mVAO, mVBO, mIBO;
     GLuint mTextureObject;
 
-    GLuint gCameraLocation, gModelLocation, gSamplerLocation;
+    GLuint gCameraLocation, gVPLocation, gSamplerLocation;
 
-    VertexTex    *Vertices;
-    unsigned int *Indices;
+    Vertex        *Vertices;
+    unsigned int  *Indices;
+    tdogl::Camera cam;
 
     //debug
     void printMatrix(const QMatrix4x4& mat);
