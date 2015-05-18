@@ -97,7 +97,7 @@ void MyWindow::initialize()
     glCullFace(GL_BACK);
     glEnable(GL_CULL_FACE);
 
-    PrepareTexture(GL_TEXTURE_2D, "./data/hackberry_tree_20131230_1040936985.png", mTextureObject);
+    PrepareTexture(GL_TEXTURE_2D, "./data/hackberry_tree_20131230_1040936985.png", mTextureObject, true);
 }
 
 void MyWindow::CreateVertexBuffer()
@@ -166,6 +166,9 @@ void MyWindow::render()
     WVP.lookAt(cam.position(), QVector3D(0.0f, 0.0f, 0.0f), QVector3D(0.0f, 1.0f, 0.0f));
     QMatrix4x4 CameraMat(WVP);
 
+    //PrintCoordOglDevOrig(QVector3D(0.0f,  0.0f, 0.0f), cam.position());
+    //PrintCoordMoiRightHanded(QVector3D(0.0f,  0.0f, 0.0f), cam.position());
+
     WVP *= World;
 
     mProgram->bind();
@@ -217,11 +220,13 @@ void MyWindow::initShaders()
     qDebug() << "shader link 1: " << mProgram->link();
 }
 
-void MyWindow::PrepareTexture(GLenum TextureTarget, const QString& FileName, GLuint& TexObject)
+void MyWindow::PrepareTexture(GLenum TextureTarget, const QString& FileName, GLuint& TexObject, bool flip)
 {
     QImage TexImg;
 
     if (!TexImg.load(FileName)) qDebug() << "Erreur chargement texture";
+    if (flip==true) TexImg=TexImg.mirrored();
+
     glGenTextures(1, &TexObject);
     glBindTexture(TextureTarget, TexObject);
     glTexImage2D(TextureTarget, 0, GL_RGB, TexImg.width(), TexImg.height(), 0, GL_BGRA, GL_UNSIGNED_BYTE, TexImg.bits());
@@ -250,7 +255,7 @@ void MyWindow::keyPressEvent(QKeyEvent *keyEvent)
         case Qt::Key_Home:
             break;
         case Qt::Key_Z:
-            cam.setPosition(QVector3D(cam.position().x(), cam.position().y(), (cam.position().z())+1.0f));
+            cam.setPosition(QVector3D(cam.position().x(), cam.position().y(), (cam.position().z())-1.0f));
             cam.printPosition();
             break;
         case Qt::Key_Q:
@@ -258,7 +263,7 @@ void MyWindow::keyPressEvent(QKeyEvent *keyEvent)
             cam.printPosition();
             break;
         case Qt::Key_S:
-            cam.setPosition(QVector3D(cam.position().x(), cam.position().y(), cam.position().z()-1.0f));
+            cam.setPosition(QVector3D(cam.position().x(), cam.position().y(), cam.position().z()+1.0f));
             cam.printPosition();
             break;
         case Qt::Key_D:
@@ -283,4 +288,50 @@ void MyWindow::printMatrix(const QMatrix4x4& mat)
     {
         qDebug() << locMat[i*4] << " " << locMat[i*4+1] << " " << locMat[i*4+2] << " " << locMat[i*4+3];
     }
+}
+
+void MyWindow::PrintCoordOglDevOrig(QVector3D pos, QVector3D cameraPos)
+{
+    QVector3D toCamera = QVector3D(cameraPos - pos).normalized();
+    QVector3D up(0.0, 1.0, 0.0);
+    QVector3D right = QVector3D::crossProduct(toCamera, up);
+    QVector3D Pos(pos);
+
+    qDebug() << "tocam: " << toCamera << " right: " << right;
+
+    Pos -= (right * 0.5);
+    qDebug() << "pos1: " << Pos;
+
+    Pos.setY(Pos.y()+1.0);
+    qDebug() << "pos2: " << Pos;
+
+    Pos.setY(Pos.y()-1.0);
+    Pos += right;
+    qDebug() << "pos3: " << Pos;
+
+    Pos.setY(Pos.y()+1.0);
+    qDebug() << "pos4: " << Pos;
+}
+
+void MyWindow::PrintCoordMoiRightHanded(QVector3D pos, QVector3D cameraPos)
+{
+    QVector3D toCamera = QVector3D(cameraPos - pos).normalized();
+    QVector3D up(0.0, 1.0, 0.0);
+    QVector3D right = QVector3D::crossProduct(up, toCamera);
+    QVector3D Pos(pos);
+
+    qDebug() << "tocam: " << toCamera << " right: " << right;
+
+    Pos += (right * 0.5);
+    qDebug() << "pos1: " << Pos;
+
+    Pos.setY(Pos.y()+1.0);
+    qDebug() << "pos2: " << Pos;
+
+    Pos -= right;
+    Pos.setY(Pos.y()-1.0);
+    qDebug() << "pos3: " << Pos;
+
+    Pos.setY(Pos.y()+1.0);
+    qDebug() << "pos4: " << Pos;
 }

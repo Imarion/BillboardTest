@@ -4,6 +4,7 @@
 #include <QKeyEvent>
 
 #include <QVector3D>
+#include <QMatrix4x4>
 
 #include <QOpenGLContext>
 #include <QOpenGLFunctions>
@@ -37,7 +38,10 @@ private:
     void initShaders();
     void CreateVertexBuffer();
 
-    void PrepareTexture(GLenum TextureTarget, const QString& FileName, GLuint& TexObject);
+    void PrepareTexture(GLenum TextureTarget, const QString& FileName, GLuint& TexObject, bool flip);
+
+    void PrintCoordOglDevOrig(QVector3D pos, QVector3D camera);
+    void PrintCoordMoiRightHanded(QVector3D pos, QVector3D camera);
 
 protected:
     void resizeEvent(QResizeEvent *);

@@ -15,33 +15,61 @@ void main()
 
     vec3 toCamera = normalize(gCameraPos - Pos);
     vec3 up = vec3(0.0, 1.0, 0.0);
+
+// variante coordonnées calculées par moi / right handed
     vec3 right = cross(up, toCamera);
 
-    // original version
     Pos += (right * 0.5);
     gl_Position = gVP * vec4(Pos, 1.0);
-    //TexCoord = vec2(1.0, 0.0);
-    TexCoord = vec2(1.0, 1.0);
+    TexCoord = vec2(0.0, 0.0);
     EmitVertex();
 
     Pos.y += 1.0;
     gl_Position = gVP * vec4(Pos, 1.0);
-    //TexCoord = vec2(1.0, 1.0);
-    TexCoord = vec2(1.0, 0.0);
-    EmitVertex();
-
-    Pos.y -= 1.0;
-    Pos -= right;
-    gl_Position = gVP * vec4(Pos, 1.0);
-    //TexCoord = vec2(0.0, 0.0);
     TexCoord = vec2(0.0, 1.0);
     EmitVertex();
 
+    Pos -= right;
+    Pos.y -= 1.0;
+    gl_Position = gVP * vec4(Pos, 1.0);
+    TexCoord = vec2(1.0, 0.0);
+    EmitVertex();
+
     Pos.y += 1.0;
     gl_Position = gVP * vec4(Pos, 1.0);
-    //TexCoord = vec2(0.0, 1.0);
+    TexCoord = vec2(1.0, 1.0);
+    EmitVertex();
+
+/*
+    // original ogldev version
+    vec3 Pos = gl_in[0].gl_Position.xyz;
+    vec3 toCamera = normalize(gCameraPos - Pos);
+    vec3 up = vec3(0.0, 1.0, 0.0);
+
+    vec3 right = cross(toCamera, up);
+
+    Pos -= (right * 0.5);
+    gl_Position = gVP * vec4(Pos, 1.0);
     TexCoord = vec2(0.0, 0.0);
     EmitVertex();
+
+    Pos.y += 1.0;
+    gl_Position = gVP * vec4(Pos, 1.0);
+    TexCoord = vec2(0.0, 1.0);
+    EmitVertex();
+
+    Pos.y -= 1.0;
+    Pos += right;
+    gl_Position = gVP * vec4(Pos, 1.0);
+    TexCoord = vec2(1.0, 0.0);
+    EmitVertex();
+
+    Pos.y += 1.0;
+    gl_Position = gVP * vec4(Pos, 1.0);
+    TexCoord = vec2(1.0, 1.0);
+    EmitVertex();
+*/
+
 
 /*
 // marche avec coordonnées textures inversées
@@ -67,32 +95,6 @@ void main()
     Pos.y += 1.0;
     gl_Position = gVP * vec4(Pos, 1.0);
     TexCoord = vec2(0.0, 0.0);
-    EmitVertex();
-*/
-
-/*
-    // original version
-    vec3 right = cross(toCamera, up);
-
-    Pos -= (right * 0.5);
-    gl_Position = gVP * vec4(Pos, 1.0);
-    TexCoord = vec2(0.0, 0.0);
-    EmitVertex();
-
-    Pos.y += 1.0;
-    gl_Position = gVP * vec4(Pos, 1.0);
-    TexCoord = vec2(0.0, 1.0);
-    EmitVertex();
-
-    Pos.y -= 1.0;
-    Pos += right;
-    gl_Position = gVP * vec4(Pos, 1.0);
-    TexCoord = vec2(1.0, 0.0);
-    EmitVertex();
-
-    Pos.y += 1.0;
-    gl_Position = gVP * vec4(Pos, 1.0);
-    TexCoord = vec2(1.0, 1.0);
     EmitVertex();
 */
     EndPrimitive();
