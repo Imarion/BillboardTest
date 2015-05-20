@@ -30,7 +30,6 @@ MyWindow::MyWindow() : currentTimeMs(0), currentTimeS(0)
     Vertices = 0;
     Indices  = 0;
     mProgram = 0;
-    cam.setPosition(QVector3D(2.0f, 2.0f, 2.0f));
 
     setSurfaceType(QWindow::OpenGLSurface);
     setFlags(Qt::Window | Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint);
@@ -98,6 +97,11 @@ void MyWindow::initialize()
     glEnable(GL_CULL_FACE);
 
     PrepareTexture(GL_TEXTURE_2D, "./data/hackberry_tree_20131230_1040936985.png", mTextureObject, true);
+
+    cam.setPosition(QVector3D(0.0f, 0.1f, 4.0f));
+    cam.setFieldOfView(60.0f);
+    cam.lookAt(QVector3D(0.0f, 0.1f, 0.0f));
+    cam.setViewportAspectRatio((float)this->width()/(float)this->height());
 }
 
 void MyWindow::CreateVertexBuffer()
@@ -162,19 +166,19 @@ void MyWindow::render()
     World.rotate(Scale*2, 1.0f, 0.0f, 0.0f);
     //mPointLight.setPosition(mPointLight.getPosition()-QVector3D(0.0f, 0.0f, Scale/1000.0f));
 
-    WVP.perspective(60.0f, (float)this->width()/(float)this->height(), 1.0f, 100.0f);
-    WVP.lookAt(cam.position(), QVector3D(0.0f, 0.0f, 0.0f), QVector3D(0.0f, 1.0f, 0.0f));
+    //WVP.perspective(60.0f, (float)this->width()/(float)this->height(), 1.0f, 100.0f);
+    //WVP.lookAt(cam.position(), QVector3D(0.0f, 0.0f, 0.0f), QVector3D(0.0f, 1.0f, 0.0f));
     QMatrix4x4 CameraMat(WVP);
 
     //PrintCoordOglDevOrig(QVector3D(0.0f,  0.0f, 0.0f), cam.position());
     //PrintCoordMoiRightHanded(QVector3D(0.0f,  0.0f, 0.0f), cam.position());
 
-    WVP *= World;
+    //WVP *= World;
 
     mProgram->bind();
     {        
         glUniform3f(gCameraLocation, cam.position().x(), cam.position().y(), cam.position().z());
-        glUniformMatrix4fv(gVPLocation,  1, GL_FALSE, CameraMat.constData());
+        glUniformMatrix4fv(gVPLocation,  1, GL_FALSE, cam.matrix().constData());
 
         glDrawArrays(GL_POINTS, 0, 1);
 
@@ -255,24 +259,30 @@ void MyWindow::keyPressEvent(QKeyEvent *keyEvent)
         case Qt::Key_Home:
             break;
         case Qt::Key_Z:
-            cam.setPosition(QVector3D(cam.position().x(), cam.position().y(), (cam.position().z())-1.0f));
+            //cam.setPosition(QVector3D(cam.position().x(), cam.position().y(), (cam.position().z())-1.0f));
+            cam.offsetPosition(cam.forward());
             cam.printPosition();
             break;
         case Qt::Key_Q:
-            cam.setPosition(QVector3D(cam.position().x()-1.0f, cam.position().y(), cam.position().z()));
+            //cam.setPosition(QVector3D(cam.position().x()-1.0f, cam.position().y(), cam.position().z()));
+            cam.offsetPosition(-cam.right());
             cam.printPosition();
             break;
         case Qt::Key_S:
-            cam.setPosition(QVector3D(cam.position().x(), cam.position().y(), cam.position().z()+1.0f));
+            //cam.setPosition(QVector3D(cam.position().x(), cam.position().y(), cam.position().z()+1.0f));
+            cam.offsetPosition(-cam.forward());
             cam.printPosition();
             break;
         case Qt::Key_D:
-            cam.setPosition(QVector3D(cam.position().x()+1.0f, cam.position().y(), cam.position().z()));
+            //cam.setPosition(QVector3D(cam.position().x()+1.0f, cam.position().y(), cam.position().z()));
+            cam.offsetPosition(cam.right());
             cam.printPosition();
             break;
-        case Qt::Key_X:
+        case Qt::Key_A:
+            cam.offsetOrientation(0.0f, -1.0f);
             break;
-        case Qt::Key_W:
+        case Qt::Key_E:
+            cam.offsetOrientation(0.0f, 1.0f);
             break;
         default:
             break;
