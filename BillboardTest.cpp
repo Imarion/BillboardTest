@@ -20,16 +20,22 @@
 
 MyWindow::~MyWindow()
 {
-    if (Vertices != 0) delete[] Vertices;
-    if (Indices  != 0) delete[] Indices;
-    if (mProgram != 0) delete mProgram;
+    if (TreeVertices != 0)  delete[] TreeVertices;
+    if (TreeIndices  != 0)  delete[] TreeIndices;
+    if (mTreeProgram != 0)  delete   mTreeProgram;
+    if (GrassVertices != 0) delete[] GrassVertices;
+    if (GrassIndices  != 0) delete[] GrassIndices;
+    if (mGrassProgram != 0) delete   mGrassProgram;
 }
 
 MyWindow::MyWindow() : currentTimeMs(0), currentTimeS(0)
 {
-    Vertices = 0;
-    Indices  = 0;
-    mProgram = 0;
+    TreeVertices = 0;
+    TreeIndices  = 0;
+    mTreeProgram = 0;
+    GrassVertices = 0;
+    GrassIndices  = 0;
+    mGrassProgram = 0;
 
     setSurfaceType(QWindow::OpenGLSurface);
     setFlags(Qt::Window | Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint);
@@ -88,15 +94,20 @@ void MyWindow::initialize()
     CreateVertexBuffer();
     initShaders();
 
-    gCameraLocation  = mProgram->uniformLocation("gCameraPos");
-    gVPLocation      = mProgram->uniformLocation("gVP");
-    gSamplerLocation = mProgram->uniformLocation("gColorMap");
+    gTreeCameraLocation  = mTreeProgram->uniformLocation("gCameraPos");
+    gTreeVPLocation      = mTreeProgram->uniformLocation("gVP");
+    gTreeSamplerLocation = mTreeProgram->uniformLocation("gColorMap");
+
+    gGrassCameraLocation  = mGrassProgram->uniformLocation("gCameraPos");
+    gGrassVPLocation      = mGrassProgram->uniformLocation("gVP");
+    gGrassSamplerLocation = mGrassProgram->uniformLocation("gColorMap");
 
     glFrontFace(GL_CCW);
     glCullFace(GL_BACK);
     glEnable(GL_CULL_FACE);
 
-    PrepareTexture(GL_TEXTURE_2D, "./data/hackberry_tree_20131230_1040936985.png", mTextureObject, true);
+    PrepareTexture(GL_TEXTURE_2D, "./data/hackberry_tree_20131230_1040936985.png", mTreeTextureObject, true);
+    PrepareTexture(GL_TEXTURE_2D, "./data/dirt_grass_20120516_1324302946.jpg",     mGrassTextureObject, true);
 
     cam.setPosition(QVector3D(0.0f, 0.1f, 4.0f));
     cam.setFieldOfView(60.0f);
@@ -107,17 +118,37 @@ void MyWindow::initialize()
 void MyWindow::CreateVertexBuffer()
 {
     // C++11 required
-    Vertices = new Vertex {
+    TreeVertices = new Vertex {
         Vertex(QVector3D(0.0f,  0.0f, 0.0f),  QVector3D(1.0f, 1.0f, 1.0f))
     };
 
-    glGenBuffers(1, &mVBO);
-    glBindBuffer(GL_ARRAY_BUFFER, mVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertices[0])*NUM_VERTICES, Vertices, GL_STATIC_DRAW);
+    GrassVertices = new VertexTex[4] {
+        VertexTex(QVector3D(-100.0f,  0.0f,  100.0f),  QVector2D(0.0f, 0.0f)),
+        VertexTex(QVector3D( 100.0f,  0.0f,  100.0f),  QVector2D(100.0f, 0.0f)),
+        VertexTex(QVector3D( 100.0f,  0.0f, -100.0f),  QVector2D(100.0f, 100.0f)),
+        VertexTex(QVector3D(-100.0f,  0.0f, -100.0f),  QVector2D(0.0f, 100.0f))
+    };
 
-    glGenBuffers(1, &mIBO);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(Indices[0])*NUM_INDICES, Indices, GL_STATIC_DRAW);
+    GrassIndices = new unsigned int[6] {
+         0, 2, 3,
+         0, 1, 2
+    };
+
+    glGenBuffers(1, &mTreeVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, mTreeVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(TreeVertices[0]), TreeVertices, GL_STATIC_DRAW);
+
+    glGenBuffers(1, &mTreeIBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mTreeIBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(TreeIndices[0]), TreeIndices, GL_STATIC_DRAW);
+
+    glGenBuffers(1, &mGrassVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, mGrassVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(GrassVertices[0])*4, GrassVertices, GL_STATIC_DRAW);
+
+    glGenBuffers(1, &mGrassIBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mGrassIBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GrassIndices[0])*6, GrassIndices, GL_STATIC_DRAW);
 }
 
 void MyWindow::resizeEvent(QResizeEvent *)
@@ -147,14 +178,15 @@ void MyWindow::render()
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
+    // Tree
     glEnableVertexAttribArray(0);
 
-    glBindBuffer(GL_ARRAY_BUFFER, mVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, mTreeVBO);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(VertexTex), 0);
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, mTextureObject);
-    glUniform1i(gSamplerLocation, 0);
+    glBindTexture(GL_TEXTURE_2D, mTreeTextureObject);
+    glUniform1i(gTreeSamplerLocation, 0);
 
     static float Scale = 0.0f;
     Scale += 0.1f; // tut 12
@@ -175,16 +207,43 @@ void MyWindow::render()
 
     //WVP *= World;
 
-    mProgram->bind();
+    mTreeProgram->bind();
     {        
-        glUniform3f(gCameraLocation, cam.position().x(), cam.position().y(), cam.position().z());
-        glUniformMatrix4fv(gVPLocation,  1, GL_FALSE, cam.matrix().constData());
+        glUniform3f(gTreeCameraLocation, cam.position().x(), cam.position().y(), cam.position().z());
+        glUniformMatrix4fv(gTreeVPLocation,  1, GL_FALSE, cam.matrix().constData());
 
         glDrawArrays(GL_POINTS, 0, 1);
 
         glDisableVertexAttribArray(0);
     }
-    mProgram->release();
+    mTreeProgram->release();
+
+
+    // Grass
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+
+    glBindBuffer(GL_ARRAY_BUFFER, mGrassVBO);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(VertexTex), 0);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(VertexTex), (const GLvoid *)((sizeof(GrassVertices[0].getPos()))+(sizeof(GrassVertices[0].getNormal()))));
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, mGrassTextureObject);
+    glUniform1i(gGrassSamplerLocation, 0);
+
+    mGrassProgram->bind();
+    {
+        glUniform3f(gGrassCameraLocation, cam.position().x(), cam.position().y(), cam.position().z());
+        glUniformMatrix4fv(gGrassVPLocation,  1, GL_FALSE, cam.matrix().constData());
+
+        //glDrawArrays(GL_TRIANGLES, 0, 4);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+        glDisableVertexAttribArray(0);
+        glDisableVertexAttribArray(1);
+    }
+    mGrassProgram->release();
+
 
     mContext->swapBuffers(this);
 }
@@ -197,31 +256,50 @@ void MyWindow::initShaders()
     QFile         shaderFile;
     QByteArray    shaderSource;
 
-    //mProgram
+    //mTreeProgram
     // Shader 1
-    shaderFile.setFileName(":/vshader.txt");
+    shaderFile.setFileName(":/vshader_tree.txt");
     shaderFile.open(QIODevice::ReadOnly);
     shaderSource = shaderFile.readAll();
     shaderFile.close();
-    qDebug() << "vertex 1 compile: " << vShader.compileSourceCode(shaderSource);
+    qDebug() << "vertex tree compile: " << vShader.compileSourceCode(shaderSource);
 
-    shaderFile.setFileName(":/gshader.txt");
+    shaderFile.setFileName(":/gshader_tree.txt");
     shaderFile.open(QIODevice::ReadOnly);
     shaderSource = shaderFile.readAll();
     shaderFile.close();
-    qDebug() << "geometry 1 compile: " << gShader.compileSourceCode(shaderSource);
+    qDebug() << "geometry tree compile: " << gShader.compileSourceCode(shaderSource);
 
-    shaderFile.setFileName(":/fshader.txt");
+    shaderFile.setFileName(":/fshader_tree.txt");
     shaderFile.open(QIODevice::ReadOnly);
     shaderSource = shaderFile.readAll();
     shaderFile.close();
-    qDebug() << "frag   1 compile: " << fShader.compileSourceCode(shaderSource);
+    qDebug() << "frag   tree compile: " << fShader.compileSourceCode(shaderSource);
 
-    mProgram = new (QOpenGLShaderProgram);
-    mProgram->addShader(&vShader);
-    mProgram->addShader(&gShader);
-    mProgram->addShader(&fShader);
-    qDebug() << "shader link 1: " << mProgram->link();
+    mTreeProgram = new (QOpenGLShaderProgram);
+    mTreeProgram->addShader(&vShader);
+    mTreeProgram->addShader(&gShader);
+    mTreeProgram->addShader(&fShader);
+    qDebug() << "shader link tree: " << mTreeProgram->link();
+
+    //mGrassProgram
+    // Shader 1
+    shaderFile.setFileName(":/vshader_grass.txt");
+    shaderFile.open(QIODevice::ReadOnly);
+    shaderSource = shaderFile.readAll();
+    shaderFile.close();
+    qDebug() << "vertex grass compile: " << vShader.compileSourceCode(shaderSource);
+
+    shaderFile.setFileName(":/fshader_grass.txt");
+    shaderFile.open(QIODevice::ReadOnly);
+    shaderSource = shaderFile.readAll();
+    shaderFile.close();
+    qDebug() << "frag   grass compile: " << fShader.compileSourceCode(shaderSource);
+
+    mGrassProgram = new (QOpenGLShaderProgram);
+    mGrassProgram->addShader(&vShader);
+    mGrassProgram->addShader(&fShader);
+    qDebug() << "shader link grass: " << mGrassProgram->link();
 }
 
 void MyWindow::PrepareTexture(GLenum TextureTarget, const QString& FileName, GLuint& TexObject, bool flip)

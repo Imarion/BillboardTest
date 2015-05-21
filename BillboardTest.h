@@ -13,6 +13,7 @@
 #include <QOpenGLShaderProgram>
 
 #include "vertextex.h"
+#include "vertex.h"
 #include "Camera.h"
 
 #define ToRadian(x) ((x) * M_PI / 180.0f)
@@ -50,20 +51,24 @@ private:
     QOpenGLContext *mContext;
     QOpenGLFunctions_3_3_Core *mFuncs;
 
-    QOpenGLShaderProgram *mProgram; // 0 = no normal map, 1 = normal map
+    QOpenGLShaderProgram *mTreeProgram;
+    QOpenGLShaderProgram *mGrassProgram;
 
     QTimer mRepaintTimer;
     double currentTimeMs;
     double currentTimeS;
     bool   mUpdateSize;
 
-    GLuint mVAO, mVBO, mIBO;
-    GLuint mTextureObject;
+    GLuint mVAO, mTreeVBO, mTreeIBO;
+    GLuint mGrassVBO, mGrassIBO;
+    GLuint mTreeTextureObject, mGrassTextureObject;
 
-    GLuint gCameraLocation, gVPLocation, gSamplerLocation;
+    GLuint gTreeCameraLocation,  gTreeVPLocation,  gTreeSamplerLocation;
+    GLuint gGrassCameraLocation, gGrassVPLocation, gGrassSamplerLocation;
 
-    Vertex        *Vertices;
-    unsigned int  *Indices;
+    Vertex        *TreeVertices;
+    VertexTex     *GrassVertices;
+    unsigned int  *TreeIndices, *GrassIndices;
     tdogl::Camera cam;
 
     //debug

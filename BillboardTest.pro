@@ -14,9 +14,11 @@ SOURCES += BillboardTest.cpp main.cpp \
     Camera.cpp
 
 OTHER_FILES += \
-    vshader.txt \
-    gshader.txt \
-    fshader.txt
+    fshader_tree.txt \
+    gshader_tree.txt \
+    vshader_tree.txt \
+    fshader_grass.txt \
+    vshader_grass.txt
 
 RESOURCES += \
     shaders.qrc

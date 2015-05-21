@@ -114,12 +114,12 @@ void Camera::setViewportAspectRatio(float viewportAspectRatio) {
 }
 
 QVector3D Camera::forward() const {
-    QVector4D forward = (orientation().inverted()) * QVector4D(0,0,-1,1);
+    QVector4D forward = (orientation().inverted()) * QVector4D(0,0,-0.5,1);
     return QVector3D(forward);
 }
 
 QVector3D Camera::right() const {
-    QVector4D right = (orientation().inverted()) * QVector4D(1,0,0,1);
+    QVector4D right = (orientation().inverted()) * QVector4D(0.5,0,0,1);
     return QVector3D(right);
 }
 

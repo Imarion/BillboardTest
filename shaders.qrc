@@ -1,7 +1,9 @@
 <RCC>
     <qresource prefix="/">
-        <file>fshader.txt</file>
-        <file>gshader.txt</file>
-        <file>vshader.txt</file>
+        <file>fshader_tree.txt</file>
+        <file>gshader_tree.txt</file>
+        <file>vshader_tree.txt</file>
+        <file>fshader_grass.txt</file>
+        <file>vshader_grass.txt</file>
     </qresource>
 </RCC>
