@@ -112,6 +112,7 @@ void MyWindow::initialize()
     glFrontFace(GL_CCW);
     glCullFace(GL_BACK);
     glEnable(GL_CULL_FACE);
+    glEnable(GL_DEPTH_TEST);
 
     PrepareTexture(GL_TEXTURE_2D, "./data/hackberry_tree_20131230_1040936985.png", mTreeTextureObject, true);
     PrepareTexture(GL_TEXTURE_2D, "./data/dirt_grass_20120516_1324302946.jpg",     mGrassTextureObject, true);
@@ -197,7 +198,7 @@ void MyWindow::render()
     }
 
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Tree
     glEnableVertexAttribArray(0);
