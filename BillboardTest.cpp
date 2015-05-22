@@ -1,8 +1,11 @@
 #include "BillboardTest.h"
 
+#include <QtGlobal>
+
 #include <QDebug>
 #include <QFile>
 #include <QImage>
+#include <QTime>
 
 #include <QVector2D>
 #include <QVector3D>
@@ -14,6 +17,10 @@
 
 #define NUM_VERTICES    36
 #define NUM_INDICES     36
+
+#define NUM_COLS        3
+#define NUM_ROWS        10
+#define NUM_TREES       NUM_COLS * NUM_ROWS
 //#define NUM_VERTICES    4
 //#define NUM_INDICES     6
 
@@ -118,9 +125,23 @@ void MyWindow::initialize()
 void MyWindow::CreateVertexBuffer()
 {
     // C++11 required
+/*
     TreeVertices = new Vertex {
         Vertex(QVector3D(0.0f,  0.0f, 0.0f),  QVector3D(1.0f, 1.0f, 1.0f))
     };
+*/
+    QTime midnight(0, 0, 0);
+    qsrand(midnight.secsTo(QTime::currentTime()));
+    TreeVertices = new Vertex[NUM_TREES];
+    for (int j=0; j<NUM_ROWS; j++)
+    {
+        for (int i=0; i<NUM_COLS; i++)
+        {
+            TreeVertices[j*3+i].setPos(QVector3D(qrand()/(RAND_MAX + 1.0) * (10 + 1 - 0)-10, 0.0f, (j/4.0f)-1.0f));
+            //TreeVertices[j*3+i].setPos(QVector3D((float)i, 0.0f, (float)j));
+            qDebug() << "treepos: " << TreeVertices[j*3+i].getPos();
+        }
+    }
 
     GrassVertices = new VertexTex[4] {
         VertexTex(QVector3D(-100.0f,  0.0f,  100.0f),  QVector2D(0.0f, 0.0f)),
@@ -136,7 +157,7 @@ void MyWindow::CreateVertexBuffer()
 
     glGenBuffers(1, &mTreeVBO);
     glBindBuffer(GL_ARRAY_BUFFER, mTreeVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(TreeVertices[0]), TreeVertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(TreeVertices[0])*NUM_TREES, TreeVertices, GL_STATIC_DRAW);
 
     glGenBuffers(1, &mTreeIBO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mTreeIBO);
@@ -182,7 +203,7 @@ void MyWindow::render()
     glEnableVertexAttribArray(0);
 
     glBindBuffer(GL_ARRAY_BUFFER, mTreeVBO);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(VertexTex), 0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, mTreeTextureObject);
@@ -212,7 +233,7 @@ void MyWindow::render()
         glUniform3f(gTreeCameraLocation, cam.position().x(), cam.position().y(), cam.position().z());
         glUniformMatrix4fv(gTreeVPLocation,  1, GL_FALSE, cam.matrix().constData());
 
-        glDrawArrays(GL_POINTS, 0, 1);
+        glDrawArrays(GL_POINTS, 0, NUM_TREES);
 
         glDisableVertexAttribArray(0);
     }

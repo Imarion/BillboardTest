@@ -11,12 +11,14 @@ out vec2 TexCoord;
 
 void main()
 {
+/*
     vec3 Pos = gl_in[0].gl_Position.xyz;
 
     vec3 toCamera = normalize(gCameraPos - Pos);
     vec3 up = vec3(0.0, 1.0, 0.0);
-
+*/
 // variante coordonnées calculées par moi / right handed
+/*
     vec3 right = cross(up, toCamera);
 
     Pos += (right * 0.5);
@@ -39,8 +41,8 @@ void main()
     gl_Position = gVP * vec4(Pos, 1.0);
     TexCoord = vec2(0.0, 1.0);
     EmitVertex();
+*/
 
-/*
     // original ogldev version
     vec3 Pos = gl_in[0].gl_Position.xyz;
     vec3 toCamera = normalize(gCameraPos - Pos);
@@ -68,7 +70,7 @@ void main()
     gl_Position = gVP * vec4(Pos, 1.0);
     TexCoord = vec2(1.0, 1.0);
     EmitVertex();
-*/
+
 
 
 /*
